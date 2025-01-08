@@ -17,3 +17,11 @@ def get_browsers_versions() -> dict[Browser, list[str]]:
             browsers_versions[browser_name].append(version)
 
     return browsers_versions
+
+
+def get_latest_version(browser: Browser) -> str:
+    browsers_versions = get_browsers_versions()
+    return max(browsers_versions[browser])
+
+if __name__ == '__main__':
+    print(get_latest_version(Browser.CHROME))

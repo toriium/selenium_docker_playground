@@ -7,7 +7,7 @@ from selenium_toolkit import SeleniumToolKit
 import enum
 
 from grid.browser import Browser
-from grid.versions import get_browsers_versions
+from grid.versions import get_browsers_versions, get_latest_version
 
 USER_DATA_PATH = "/home/toriium/.config/google-chrome"
 PROFILE_NAME = "Profile 1"
@@ -17,12 +17,18 @@ BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEBDRIVER_DOWNLOAD_PATH = str(Path(f"{BASE_DIR}/webdriver_downloads"))
 
 
-def get_driver(browser: Browser, headless: bool = False,
+def get_driver(browser: Browser, browser_version: str = None, headless: bool = False,
                profile: bool = False, file_dir: str = None) -> SeleniumToolKit:
     use_stealth = False
 
+    if not browser_version:
+        browser_version = get_latest_version(browser=browser)
+
+    browsers_versions = get_browsers_versions()
+    if not browser_version in browsers_versions[browser]:
+        raise ValueError(f"Browser {browser}:{browser_version} is not supported")
+
     if browser == Browser.CHROME:
-        browser_version = "131.0"
         use_stealth = True
         options = webdriver.ChromeOptions()
         extra_capabilities = {
@@ -31,7 +37,6 @@ def get_driver(browser: Browser, headless: bool = False,
         }
 
     elif browser == Browser.FIREFOX:
-        browser_version = "125.0"
         use_stealth = False
         options = webdriver.FirefoxOptions()
         extra_capabilities = {}
@@ -39,9 +44,7 @@ def get_driver(browser: Browser, headless: bool = False,
     else:
         raise ValueError(f"Unknown browser: {browser}")
 
-    browsers_versions = get_browsers_versions()
-    if not browser_version in browsers_versions[browser]:
-        raise ValueError(f"Browser {browser}:{browser_version} is not supported")
+
 
     # Options
     options.browser_version = browser_version
