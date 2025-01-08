@@ -1,0 +1,46 @@
+
+# SE_NODE_MAX_INSTANCES: This defines how many instances of same version of browser can run over the Remote System.
+# SE_NODE_MAX_SESSIONS: This defines maximum number of concurrent sessions that will be allowed.
+# VNC_NO_PASSWORD: No password to access VNC
+# SE_NODE_SESSION_TIMEOUT: Time in seconds to kill IDLE sessions
+
+name: selenium-grid
+
+services:
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium-hub
+    environment:
+      GRID_MAX_SESSION: 8
+      GRID_BROWSER_TIMEOUT: 3000
+      GRID_TIMEOUT: 3000
+    ports:
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:131.0
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      SE_NODE_SESSION_TIMEOUT: 300
+      SE_NODE_MAX_SESSIONS: 4
+      SE_NODE_MAX_INSTANCES: 4
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      VNC_NO_PASSWORD: 1
+
+#  firefox:
+#
+#    image: selenium/node-firefox:latest
+#    shm_size: 2gb
+#    depends_on:
+#      - selenium-hub
+#    environment:
+#      VNC_NO_PASSWORD: 1
+#      SE_EVENT_BUS_HOST: selenium-hub
+#      SE_EVENT_BUS_PUBLISH_PORT: 4442
+#      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+
+
