@@ -1,0 +1,12 @@
+{
+  "chrome": {
+    "versions": [
+      "131.0"
+    ]
+  },
+  "firefox": {
+    "versions": [
+      "15.0"
+    ]
+  }
+}

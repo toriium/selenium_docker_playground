@@ -6,18 +6,15 @@ from selenium import webdriver
 from selenium_toolkit import SeleniumToolKit
 import enum
 
+from grid.browser import Browser
+from grid.versions import get_browsers_versions
+
 USER_DATA_PATH = "/home/toriium/.config/google-chrome"
 PROFILE_NAME = "Profile 1"
 WEBDRIVER_URL = "http://localhost:4444/wd/hub"
 
 BASE_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEBDRIVER_DOWNLOAD_PATH = str(Path(f"{BASE_DIR}/webdriver_downloads"))
-
-
-
-class Browser(enum.StrEnum):
-    CHROME = "chrome"
-    FIREFOX = "firefox"
 
 
 def get_driver(browser: Browser, headless: bool = False,
@@ -42,6 +39,10 @@ def get_driver(browser: Browser, headless: bool = False,
     else:
         raise ValueError(f"Unknown browser: {browser}")
 
+    browsers_versions = get_browsers_versions()
+    if not browser_version in browsers_versions[browser]:
+        raise ValueError(f"Browser {browser}:{browser_version} is not supported")
+
     # Options
     options.browser_version = browser_version
     options.add_argument("--start-maximized")
@@ -59,12 +60,12 @@ def get_driver(browser: Browser, headless: bool = False,
     options.add_argument("--disable-extensions")
     options.add_argument('--disable-plugins')
 
-
     if headless:
-        options.add_argument("--disable-gpu") # GPU hardware acceleration isn't needed for headless
+        options.add_argument("--disable-gpu")  # GPU hardware acceleration isn't needed for headless
         # options.add_argument("--headless")
         options.headless = True
 
+    # For now only works with chrome
     if profile:
         # Cant run more than one instance using the same profile
         # Don't work in places that need to be logged in chrome
@@ -75,6 +76,7 @@ def get_driver(browser: Browser, headless: bool = False,
         options.add_argument(f"--user-data-dir={user_data_path}")
         options.add_argument(f'--profile-directory={profile_name}')
 
+    # For now only works with chrome
     if file_dir:
         download_path = str(Path(f'{WEBDRIVER_DOWNLOAD_PATH}/{file_dir}'))
         prefs = {"download.default_directory": download_path}
@@ -95,8 +97,10 @@ def get_driver(browser: Browser, headless: bool = False,
 
     driver = webdriver.Remote(command_executor=WEBDRIVER_URL, options=options)
 
+    # Start Maximized for better analysis
     driver.maximize_window()
 
+    # For now only works with chrome
     if use_stealth:
         stealth(driver,
                 languages=["en-US", "en"],
@@ -108,7 +112,6 @@ def get_driver(browser: Browser, headless: bool = False,
                 )
 
     stk = SeleniumToolKit(driver)
-
     stk.change_wait_time(range_time=(2, 3))
 
     return stk
